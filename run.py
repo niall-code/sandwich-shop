@@ -7,6 +7,7 @@ SCOPE = [
     "https://www.googleapis.com/auth/drive"
     ]
 
+# APIs connected to enable interaction with spreadsheet.
 CREDS = Credentials.from_service_account_file('creds.json')
 SCOPED_CREDS = CREDS.with_scopes(SCOPE)
 GSPREAD_CLIENT = gspread.authorize(SCOPED_CREDS)
@@ -14,7 +15,7 @@ SHEET = GSPREAD_CLIENT.open('sandwich_data')
 
 def get_sales_data():
     """
-    Gets sale figures input from the user
+    Collects sales figures input from the user.
     """
     # Continuous loop until broken.
     while True:
@@ -60,5 +61,18 @@ def validate_data(values):
     
     # Returns True if it is true that the data is valid.
     return True
-    
+
+def update_sales_worksheet(new_data):
+    """
+    Updates sales worksheet in Sheets,
+    adding new row containing collected data.
+    """
+    print('Sales worksheet is being updated.\n')
+    sales_worksheet = SHEET.worksheet('sales')
+    sales_worksheet.append_row(new_data)
+    print('Sales worksheet update was successful.\n')
+
+# Functions called to take user input and update appropriate worksheet.
 data = get_sales_data()
+sales_data = [int(num) for num in data] # Type conversion.
+update_sales_worksheet(sales_data)
