@@ -16,16 +16,23 @@ def get_sales_data():
     """
     Gets sale figures input from the user
     """
-    print('Please enter sales data from the last market.')
-    print('Data should be six numbers separated by commas.')
-    print('Example: 10,20,30,40,50,60\n')
+    # Continuous loop until broken.
+    while True:
+        print('Please enter sales data from the last market.')
+        print('Data should be six numbers separated by commas.')
+        print('Example: 10,20,30,40,50,60\n')
 
-    data_str = input('Type your data here then press Enter: ')
+        data_str = input('Type your data here then press Enter: ')
 
-    # Convert user-provided string to a list of strings
-    sales_data = data_str.split(',')
+        # Converts user-provided string to a list of strings.
+        sales_data = data_str.split(',')
 
-    validate_data(sales_data)
+        # Calls validate_data function with user-provided data as argument.
+        # If data was successfully validated, breaks the loop.
+        if validate_data(sales_data):
+            break
+
+    return sales_data
 
 def validate_data(values):
     """
@@ -33,13 +40,25 @@ def validate_data(values):
     Raises ValueError if one or more strings cannot be converted to int,
     or if there are less or more than the expected 6 values.
     """
+    # The try block potentially raises an error.
     try:
+        # Checks all values can be used as integers.
         [int(value) for value in values]
+
+        # Checks if exactly 6 values. If not, raises a customised error.
         if len(values) != 6:
             raise ValueError(
                 f'Exactly 6 values required. {len(values)} were provided.'
             )
+        
+    # The except block responds to any errors raised.
     except ValueError as e:
         print(f'Invalid data: {e}. Please try inputting again.\n')
 
-get_sales_data()
+        # Returns False if 'the data is valid' is a false statement.
+        return False
+    
+    # Returns True if it is true that the data is valid.
+    return True
+    
+data = get_sales_data()
