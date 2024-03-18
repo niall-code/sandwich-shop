@@ -23,7 +23,7 @@ def get_sales_data():
         print('Data should be six numbers separated by commas.')
         print('Example: 10,20,30,40,50,60\n')
 
-        data_str = input('Type your data here then press Enter: ')
+        data_str = input('Type your data here then press Enter:\n')
 
         # Converts user-provided string to a list of strings.
         sales_data = data_str.split(',')
@@ -62,17 +62,72 @@ def validate_data(values):
     # Returns True if it is true that the data is valid.
     return True
 
-def update_sales_worksheet(new_data):
+def calculate_surplus(sales_row):
     """
-    Updates sales worksheet in Sheets,
-    adding new row containing collected data.
+    Compares day's sales with stock to calculate surplus of each sandwich type.
+    A negative surplus indicates that extra sandwiches were made to meet demand.
     """
-    print('Sales worksheet is being updated.\n')
-    sales_worksheet = SHEET.worksheet('sales')
-    sales_worksheet.append_row(new_data)
-    print('Sales worksheet update was successful.\n')
+    print('Product surpluses are being calculated.\n')
+    stock = SHEET.worksheet('stock').get_all_values()
+    stock_row = stock[-1]
 
-# Functions called to take user input and update appropriate worksheet.
-data = get_sales_data()
-sales_data = [int(num) for num in data] # Type conversion.
-update_sales_worksheet(sales_data)
+    surplus = []
+    for made, sold in zip(stock_row, sales_row):
+        surplus.append(int(made) - sold)
+
+    return surplus
+
+def update_worksheet(new_data, worksheet):
+    """
+    Updates appropriate worksheet in Sheets, adding
+    new row containing collected or calculated data.
+    """
+    print(f'The {worksheet} worksheet is being updated.\n')
+    target_worksheet = SHEET.worksheet(worksheet)
+    target_worksheet.append_row(new_data)
+    print(f'The {worksheet} worksheet update was successful.\n')
+
+def decide_stock_levels():
+    """
+    Based on the last 5 days of business, decides stock levels for the next day.
+    Calculates averages of recent sales figures. Adds 10% to accommodate growth.
+    """
+    sales = SHEET.worksheet('sales')
+    columns = []
+    # Python's (0, 6) is Excel's (1, 7) because the 0th is shunned.
+    for i in range(1, 7):
+        # Making a list of lists based on sandwich type columns, NOT based on day rows.
+        column = sales.col_values(i)
+        # Append only last 5 rows / days of the sandwich type column. That is, from (row) index -5 to end.
+        columns.append(column[-5:])
+
+    print('Recommended stock levels are being calculated.\n')
+    new_stock_row = []
+    for column in columns:
+        int_column = [int(num) for num in column]
+        average = sum(int_column) / len(int_column)
+        stock_num = average * 1.1
+        new_stock_row.append(round(stock_num))
+    print('Recommended stock levels were successfully calculated.\n')
+
+    return new_stock_row
+
+# Can take out the ignition to run only a particular function instead, presuming no parameters nor return yet.
+def main():
+    """
+    Runs all program functions.
+    """
+    data = get_sales_data()
+    sales_data = [int(num) for num in data]
+    update_worksheet(sales_data, 'sales')
+
+    surplus_data = calculate_surplus(sales_data)
+    update_worksheet(surplus_data, 'surplus')
+
+    stock_data = decide_stock_levels()
+    update_worksheet(stock_data, 'stock')
+
+print("Welcome to The Sandwich Shop's product data analyser.")
+print("Together, we can minimise food waste while remaining well-stocked.\n")
+
+main()
